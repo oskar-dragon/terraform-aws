@@ -1,18 +1,5 @@
-# resource "aws_acm_certificate" "cert" {
-#   domain_name       = var.domain
-#   validation_method = "DNS"
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
-
-# resource "aws_acm_certificate_validation" "cert_validation" {
-#   certificate_arn         = aws_acm_certificate.cert.arn
-#   validation_record_fqdns = [aws_route53_record.root.fqdn]
-# }
-
 resource "aws_acm_certificate" "cert" {
-  domain_name       = var.environment_name == "prod" ? "${var.domain}" : "${var.environment_name}.${var.domain}"
+  domain_name       = var.domain
   validation_method = "DNS"
 }
 
