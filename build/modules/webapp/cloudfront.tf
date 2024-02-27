@@ -2,19 +2,21 @@ locals {
   s3_origin_id = "S3-origin-${var.domain}"
 }
 
-resource "aws_cloudfront_origin_access_identity" "oai" {
-  comment = "${var.domain} OAI"
+resource "aws_cloudfront_origin_access_control" "oac" {
+  name                              = "origin-access-control${var.domain}"
+  description                       = ""
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
-resource "aws_cloudfront_distribution" "s3_distribution" {
-  depends_on = [aws_acm_certificate.cert]
-  origin {
-    domain_name = aws_s3_bucket.bucket.bucket_regional_domain_name
-    origin_id   = local.s3_origin_id
 
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
-    }
+
+resource "aws_cloudfront_distribution" "s3_distribution" {
+  origin {
+    domain_name              = aws_s3_bucket.bucket.bucket_regional_domain_name
+    origin_id                = local.s3_origin_id
+    origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
   }
 
   aliases = [var.domain]
