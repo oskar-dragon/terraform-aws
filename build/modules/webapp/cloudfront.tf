@@ -10,7 +10,13 @@ resource "aws_cloudfront_origin_access_control" "oac" {
   signing_protocol                  = "sigv4"
 }
 
+data "aws_cloudfront_cache_policy" "s3_distribution" {
+  name = "Managed-CachingOptimized"
+}
 
+data "aws_cloudfront_origin_request_policy" "s3_distribution" {
+  name = "Managed-CORS-S3Origin"
+}
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
@@ -32,40 +38,9 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = local.s3_origin_id
 
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    viewer_protocol_policy = "redirect-to-https"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-    compress               = true
-  }
-
-  ordered_cache_behavior {
-    path_pattern     = "/index.html"
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = local.s3_origin_id
-
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl                = 0
-    default_ttl            = 0
-    max_ttl                = 0
-    compress               = true
-    viewer_protocol_policy = "redirect-to-https"
+    viewer_protocol_policy   = "redirect-to-https"
+    cache_policy_id          = data.aws_cloudfront_cache_policy.s3_distribution.id
+    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.s3_distribution.id
   }
 
   price_class = "PriceClass_100"
